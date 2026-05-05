@@ -1,0 +1,12 @@
+{
+  "rules": {
+    "boards": {
+      "lixing-115": {
+        "jobs": {
+          ".read": true,
+          ".write": true
+        }
+      }
+    }
+  }
+}

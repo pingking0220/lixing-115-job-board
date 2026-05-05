@@ -14,3 +14,14 @@
 
 選填結果會儲存在同一台電腦、同一個瀏覽器的 localStorage。
 觀看版會讀取同一份 localStorage，適合在同一台電腦開分頁或投影即時觀看；跨裝置即時同步需要另外接資料庫服務。
+
+## Firebase 即時同步
+
+此專案已預留 Firebase Realtime Database 同步設定。
+
+1. 建立 Firebase 專案與 Realtime Database。
+2. 將 Firebase Web App 設定填入 `firebase-config.js`。
+3. 將 `database.rules.json` 套用到 Realtime Database。
+4. 重新推送到 GitHub Pages。
+
+目前規則範本允許公開讀寫 `boards/lixing-115/jobs`，適合校內臨時活動快速使用；若公開連結會廣泛流傳，建議改成登入驗證或加上管理密碼。

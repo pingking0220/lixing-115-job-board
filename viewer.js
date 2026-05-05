@@ -33,6 +33,10 @@ const groups = [
 const STORAGE_KEY = "lixing-115-job-board";
 const CHANNEL_KEY = "lixing-115-job-board-updates";
 const updateChannel = "BroadcastChannel" in window ? new BroadcastChannel(CHANNEL_KEY) : null;
+const remoteSync = {
+  ref: null,
+  ready: false
+};
 const originalJobs = groups.flatMap((group, groupIndex) =>
   group.jobs.map(([title, name], jobIndex) => ({
     id: `${groupIndex}-${jobIndex}`,
@@ -57,6 +61,29 @@ function loadJobs() {
     return originalJobs.map((job) => ({ ...job, ...(parsed[job.id] || {}) }));
   } catch {
     return structuredClone(originalJobs);
+  }
+}
+
+function isFirebaseConfigured() {
+  const config = window.LIXING_FIREBASE_CONFIG;
+  return Boolean(config?.apiKey && config?.databaseURL && window.firebase?.database);
+}
+
+function initRemoteSync() {
+  if (!isFirebaseConfigured()) return;
+  try {
+    firebase.apps.length ? firebase.app() : firebase.initializeApp(window.LIXING_FIREBASE_CONFIG);
+    remoteSync.ref = firebase.database().ref(window.LIXING_DATABASE_PATH || "boards/lixing-115/jobs");
+    remoteSync.ready = true;
+    remoteSync.ref.on("value", (snapshot) => {
+      const remotePayload = snapshot.val();
+      if (!remotePayload) return;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(remotePayload));
+      lastPayload = "";
+      render();
+    });
+  } catch (error) {
+    console.warn("Firebase sync unavailable:", error);
   }
 }
 
@@ -103,4 +130,5 @@ window.addEventListener("storage", (event) => {
 
 updateChannel?.addEventListener("message", render);
 setInterval(render, 1000);
+initRemoteSync();
 render();

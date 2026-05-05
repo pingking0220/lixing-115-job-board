@@ -40,6 +40,10 @@ const groups = [
 const STORAGE_KEY = "lixing-115-job-board";
 const CHANNEL_KEY = "lixing-115-job-board-updates";
 const updateChannel = "BroadcastChannel" in window ? new BroadcastChannel(CHANNEL_KEY) : null;
+const remoteSync = {
+  ref: null,
+  ready: false
+};
 const originalJobs = groups.flatMap((group, groupIndex) =>
   group.jobs.map(([title, name], jobIndex) => ({
     id: `${groupIndex}-${jobIndex}`,
@@ -77,10 +81,47 @@ function loadJobs() {
   }
 }
 
-function saveJobs() {
-  const payload = Object.fromEntries(jobs.map((job) => [job.id, { name: job.name, locked: job.locked }]));
+function serializeJobs() {
+  return Object.fromEntries(jobs.map((job) => [job.id, { name: job.name, locked: job.locked }]));
+}
+
+function saveJobs(options = { publish: true }) {
+  const payload = serializeJobs();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   updateChannel?.postMessage({ type: "jobs-updated", savedAt: Date.now() });
+  if (options.publish) publishJobs(payload);
+}
+
+function isFirebaseConfigured() {
+  const config = window.LIXING_FIREBASE_CONFIG;
+  return Boolean(config?.apiKey && config?.databaseURL && window.firebase?.database);
+}
+
+function initRemoteSync() {
+  if (!isFirebaseConfigured()) return;
+  try {
+    firebase.apps.length ? firebase.app() : firebase.initializeApp(window.LIXING_FIREBASE_CONFIG);
+    remoteSync.ref = firebase.database().ref(window.LIXING_DATABASE_PATH || "boards/lixing-115/jobs");
+    remoteSync.ready = true;
+    remoteSync.ref.on("value", (snapshot) => {
+      const remotePayload = snapshot.val();
+      if (!remotePayload) return;
+      jobs = originalJobs.map((job) => ({ ...job, ...(remotePayload[job.id] || {}) }));
+      pending = null;
+      selectedTeacher = "";
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(remotePayload));
+      render();
+    });
+  } catch (error) {
+    console.warn("Firebase sync unavailable:", error);
+  }
+}
+
+function publishJobs(payload) {
+  if (!remoteSync.ready) return;
+  remoteSync.ref.set(payload).catch((error) => {
+    console.warn("Firebase publish failed:", error);
+  });
 }
 
 function render() {
@@ -223,4 +264,5 @@ copyButton.addEventListener("click", async () => {
   setTimeout(() => (copyButton.textContent = "複製"), 1200);
 });
 
+initRemoteSync();
 render();
