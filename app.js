@@ -5,6 +5,40 @@ const teachers = [
   "徐靜敏", "林亮均", "張瑜珊", "倪晨茹", "蔡昀倢", "邱筠芝", "韓家柔"
 ];
 
+const teacherPoints = {
+  徐蕙美: 73,
+  謝英玲: 68,
+  沈佩芳: 64,
+  蔡瓊慧: 56,
+  楊從玓: 52,
+  楊兆琪: 52,
+  蘇靖閔: 48,
+  方盈予: 46,
+  陳祈宏: 45,
+  潘佳玲: 41,
+  吳宜津: 40,
+  曾鈺臻: 40,
+  莊美雅: 38,
+  林怡伶: 35,
+  劉佩怡: 35,
+  吳玲玲: 35,
+  粘依婷: 34.25,
+  鄭琇穗: 34,
+  牟嘉瑩: 34,
+  呂倩如: 33,
+  林怡君: 31.5,
+  吳沛珊: 31.35,
+  陳鈺雯: 31,
+  陳怜蓁: 30.83,
+  徐靜敏: 26,
+  林亮均: 26,
+  張瑜珊: 24,
+  倪晨茹: 21.33,
+  蔡昀倢: 20.83,
+  邱筠芝: 20.5,
+  韓家柔: 12
+};
+
 const groups = [
   {
     title: "行政與一至三年級",
@@ -130,6 +164,11 @@ function render() {
   renderStatus();
 }
 
+function formatName(name) {
+  if (!name) return "";
+  return Object.hasOwn(teacherPoints, name) ? `${name}（${teacherPoints[name]}）` : name;
+}
+
 function renderTeachers() {
   const assignedNames = new Set(jobs.filter((job) => !job.locked && job.name).map((job) => job.name));
   teacherList.innerHTML = "";
@@ -140,7 +179,7 @@ function renderTeachers() {
     button.dataset.name = name;
     button.disabled = assignedNames.has(name);
     if (selectedTeacher === name) button.classList.add("selected");
-    button.innerHTML = `<span class="order">${index + 1}</span><span class="teacher-name">${name}</span><span class="teacher-state">${assignedNames.has(name) ? "已選" : ""}</span>`;
+    button.innerHTML = `<span class="order">${index + 1}</span><span class="teacher-name">${formatName(name)}</span><span class="teacher-state">${assignedNames.has(name) ? "已選" : ""}</span>`;
     button.addEventListener("click", () => {
       selectedTeacher = selectedTeacher === name ? "" : name;
       pending = null;
@@ -169,7 +208,7 @@ function renderBoard() {
       cell.disabled = job.locked || Boolean(job.name);
       cell.innerHTML = `
         <span class="job-title">${job.title}</span>
-        <span class="job-name">${pending?.jobId === job.id ? pending.teacher : (job.name || "待選填")}</span>
+        <span class="job-name">${pending?.jobId === job.id ? formatName(pending.teacher) : (formatName(job.name) || "待選填")}</span>
         <span class="job-note">${job.locked ? "已確認" : pending?.jobId === job.id ? "待確認" : job.name ? "已選填" : ""}</span>
       `;
       cell.addEventListener("click", () => chooseJob(job.id));
@@ -191,9 +230,9 @@ function renderStatus() {
 
   if (pending) {
     const job = jobs.find((item) => item.id === pending.jobId);
-    currentAction.textContent = `${pending.teacher} 選填 ${job.title}，請按確認或取消`;
+    currentAction.textContent = `${formatName(pending.teacher)} 選填 ${job.title}，請按確認或取消`;
   } else if (selectedTeacher) {
-    currentAction.textContent = `目前選取：${selectedTeacher}，請點擊空白職務`;
+    currentAction.textContent = `目前選取：${formatName(selectedTeacher)}，請點擊空白職務`;
   } else {
     currentAction.textContent = "請先點選教師姓名";
   }
@@ -244,7 +283,7 @@ exportButton.addEventListener("click", () => {
     lines.push(`【${group.title}】`);
     jobs.filter((job) => job.group === group.title).forEach((job) => {
       const status = job.locked ? "已確認" : job.name ? "本次選填" : "空白";
-      lines.push(`${job.title}\t${job.name || ""}\t${status}`);
+      lines.push(`${job.title}\t${formatName(job.name)}\t${status}`);
     });
     lines.push("");
   });

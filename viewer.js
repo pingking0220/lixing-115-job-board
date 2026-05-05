@@ -30,6 +30,40 @@ const groups = [
   }
 ];
 
+const teacherPoints = {
+  徐蕙美: 73,
+  謝英玲: 68,
+  沈佩芳: 64,
+  蔡瓊慧: 56,
+  楊從玓: 52,
+  楊兆琪: 52,
+  蘇靖閔: 48,
+  方盈予: 46,
+  陳祈宏: 45,
+  潘佳玲: 41,
+  吳宜津: 40,
+  曾鈺臻: 40,
+  莊美雅: 38,
+  林怡伶: 35,
+  劉佩怡: 35,
+  吳玲玲: 35,
+  粘依婷: 34.25,
+  鄭琇穗: 34,
+  牟嘉瑩: 34,
+  呂倩如: 33,
+  林怡君: 31.5,
+  吳沛珊: 31.35,
+  陳鈺雯: 31,
+  陳怜蓁: 30.83,
+  徐靜敏: 26,
+  林亮均: 26,
+  張瑜珊: 24,
+  倪晨茹: 21.33,
+  蔡昀倢: 20.83,
+  邱筠芝: 20.5,
+  韓家柔: 12
+};
+
 const STORAGE_KEY = "lixing-115-job-board";
 const CHANNEL_KEY = "lixing-115-job-board-updates";
 const updateChannel = "BroadcastChannel" in window ? new BroadcastChannel(CHANNEL_KEY) : null;
@@ -62,6 +96,11 @@ function loadJobs() {
   } catch {
     return structuredClone(originalJobs);
   }
+}
+
+function formatName(name) {
+  if (!name) return "";
+  return Object.hasOwn(teacherPoints, name) ? `${name}（${teacherPoints[name]}）` : name;
 }
 
 function isFirebaseConfigured() {
@@ -109,7 +148,7 @@ function render() {
       if (!job.name) cell.classList.add("empty");
       cell.innerHTML = `
         <span class="job-title">${job.title}</span>
-        <span class="job-name ${job.name ? "" : "empty-name"}">${job.name || "待選填"}</span>
+        <span class="job-name ${job.name ? "" : "empty-name"}">${formatName(job.name) || "待選填"}</span>
         <span class="job-note">${job.locked ? "已確認" : job.name ? "已選填" : ""}</span>
       `;
       grid.appendChild(cell);
