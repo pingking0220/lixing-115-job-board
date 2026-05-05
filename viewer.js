@@ -17,7 +17,7 @@ const groups = [
       ["51導師", ""], ["52導師", ""], ["53導師", ""], ["54導師", ""], ["55導師", ""], ["56導師", ""], ["57導師", ""],
       ["61導師", "孟繁迪"], ["62導師", "梁昕卉"], ["63導師", "胡正仁"], ["64導師", "張庭嘉"], ["65導師", ""], ["66導師", "陳凱筌"],
       ["系管師", "楊明祥"], ["自然科任 1", ""], ["自然科任 2", ""], ["自然科任 3", ""],
-      ["英語科任 1", ""], ["英語科任 2", ""], ["英語科任 3", ""], ["英語科任 4", ""], ["英語科任 5", ""]
+      ["英語科任 1", ""], ["英語科任 2", ""], ["英語科任 3", ""], ["英語科任 4", ""], ["英語科任 5", ""], ["自然科任 4", ""]
     ]
   },
   {
@@ -25,7 +25,7 @@ const groups = [
     jobs: [
       ["音樂科任 1", ""], ["音樂科任 2", ""], ["體育科任 1", ""], ["體育科任 2", ""], ["體育科任 3", ""],
       ["社會科任", ""], ["美勞科任", ""], ["專輔教師 1", "林宜姍"], ["專輔教師 2", "黃怡嫣"],
-      ["資源班 1", "吳佩雯"], ["資源班 2", "邱秋君"], ["資源班 3", ""], ["資源班 4", "潘淑姿"], ["資源班 5", "王涓"], ["資源班 6", "王文伶"]
+      ["資源班 1", "吳佩雯"], ["資源班 2", "邱秋君"], ["資源班 3", "", { unavailable: true }], ["資源班 4", "潘淑姿"], ["資源班 5", "王涓"], ["資源班 6", "王文伶"]
     ]
   }
 ];
@@ -72,12 +72,16 @@ const remoteSync = {
   ready: false
 };
 const originalJobs = groups.flatMap((group, groupIndex) =>
-  group.jobs.map(([title, name], jobIndex) => ({
+  group.jobs.map(([title, name, options = {}], jobIndex) => ({
     id: `${groupIndex}-${jobIndex}`,
     group: group.title,
     title,
     name,
-    locked: Boolean(name)
+    locked: Boolean(name),
+    unavailable: Boolean(options.unavailable),
+    custom: false,
+    deleted: false,
+    order: groupIndex * 1000 + jobIndex
   }))
 );
 
@@ -92,7 +96,24 @@ function loadJobs() {
   if (!saved) return structuredClone(originalJobs);
   try {
     const parsed = JSON.parse(saved);
-    return originalJobs.map((job) => ({ ...job, ...(parsed[job.id] || {}) }));
+    const originalIds = new Set(originalJobs.map((job) => job.id));
+    const mergedOriginals = originalJobs
+      .map((job) => ({ ...job, ...(parsed[job.id] || {}) }))
+      .filter((job) => !job.deleted);
+    const customJobs = Object.entries(parsed)
+      .filter(([id, value]) => !originalIds.has(id) && value && typeof value === "object" && value.custom && !value.deleted)
+      .map(([id, value]) => ({
+        id,
+        group: value.group || "其他",
+        title: value.title || "未命名職務",
+        name: value.name || "",
+        locked: Boolean(value.locked && value.name),
+        unavailable: Boolean(value.unavailable),
+        custom: true,
+        deleted: false,
+        order: Number(value.order) || Date.now()
+      }));
+    return [...mergedOriginals, ...customJobs].sort((a, b) => (a.order || 0) - (b.order || 0));
   } catch {
     return structuredClone(originalJobs);
   }
@@ -133,23 +154,24 @@ function render() {
   const jobs = loadJobs();
 
   viewerBoard.innerHTML = "";
-  groups.forEach((group) => {
+  [...new Set(jobs.map((job) => job.group))].forEach((groupTitle) => {
     const section = document.createElement("section");
     section.className = "job-group";
-    section.innerHTML = `<h2>${group.title}</h2>`;
+    section.innerHTML = `<h2>${groupTitle}</h2>`;
     const grid = document.createElement("div");
     grid.className = "job-grid";
 
-    jobs.filter((job) => job.group === group.title).forEach((job) => {
+    jobs.filter((job) => job.group === groupTitle).forEach((job) => {
       const cell = document.createElement("div");
       cell.className = "job";
       if (job.locked) cell.classList.add("locked");
+      if (job.unavailable) cell.classList.add("unavailable");
       if (job.name && !job.locked) cell.classList.add("chosen");
       if (!job.name) cell.classList.add("empty");
       cell.innerHTML = `
         <span class="job-title">${job.title}</span>
         <span class="job-name ${job.name ? "" : "empty-name"}">${formatName(job.name) || "待選填"}</span>
-        <span class="job-note">${job.locked ? "已確認" : job.name ? "已選填" : ""}</span>
+        <span class="job-note">${job.unavailable ? "暫停選填" : job.locked ? "已確認" : job.name ? "已選填" : ""}</span>
       `;
       grid.appendChild(cell);
     });
@@ -159,7 +181,7 @@ function render() {
   });
 
   pickedCount.textContent = jobs.filter((job) => !job.locked && job.name).length;
-  openCount.textContent = jobs.filter((job) => !job.locked && !job.name).length;
+  openCount.textContent = jobs.filter((job) => !job.locked && !job.unavailable && !job.name).length;
   lastUpdated.textContent = `最後更新：${new Date().toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`;
 }
 

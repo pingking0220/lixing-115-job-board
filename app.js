@@ -58,7 +58,7 @@ const groups = [
       ["51導師", ""], ["52導師", ""], ["53導師", ""], ["54導師", ""], ["55導師", ""], ["56導師", ""], ["57導師", ""],
       ["61導師", "孟繁迪"], ["62導師", "梁昕卉"], ["63導師", "胡正仁"], ["64導師", "張庭嘉"], ["65導師", ""], ["66導師", "陳凱筌"],
       ["系管師", "楊明祥"], ["自然科任 1", ""], ["自然科任 2", ""], ["自然科任 3", ""],
-      ["英語科任 1", ""], ["英語科任 2", ""], ["英語科任 3", ""], ["英語科任 4", ""], ["英語科任 5", ""]
+      ["英語科任 1", ""], ["英語科任 2", ""], ["英語科任 3", ""], ["英語科任 4", ""], ["英語科任 5", ""], ["自然科任 4", ""]
     ]
   },
   {
@@ -66,7 +66,7 @@ const groups = [
     jobs: [
       ["音樂科任 1", ""], ["音樂科任 2", ""], ["體育科任 1", ""], ["體育科任 2", ""], ["體育科任 3", ""],
       ["社會科任", ""], ["美勞科任", ""], ["專輔教師 1", "林宜姍"], ["專輔教師 2", "黃怡嫣"],
-      ["資源班 1", "吳佩雯"], ["資源班 2", "邱秋君"], ["資源班 3", ""], ["資源班 4", "潘淑姿"], ["資源班 5", "王涓"], ["資源班 6", "王文伶"]
+      ["資源班 1", "吳佩雯"], ["資源班 2", "邱秋君"], ["資源班 3", "", { unavailable: true }], ["資源班 4", "潘淑姿"], ["資源班 5", "王涓"], ["資源班 6", "王文伶"]
     ]
   }
 ];
@@ -79,12 +79,16 @@ const remoteSync = {
   ready: false
 };
 const originalJobs = groups.flatMap((group, groupIndex) =>
-  group.jobs.map(([title, name], jobIndex) => ({
+  group.jobs.map(([title, name, options = {}], jobIndex) => ({
     id: `${groupIndex}-${jobIndex}`,
     group: group.title,
     title,
     name,
-    locked: Boolean(name)
+    locked: Boolean(name),
+    unavailable: Boolean(options.unavailable),
+    custom: false,
+    deleted: false,
+    order: groupIndex * 1000 + jobIndex
   }))
 );
 
@@ -109,14 +113,51 @@ function loadJobs() {
   if (!saved) return structuredClone(originalJobs);
   try {
     const parsed = JSON.parse(saved);
-    return originalJobs.map((job) => ({ ...job, ...(parsed[job.id] || {}) }));
+    const originalIds = new Set(originalJobs.map((job) => job.id));
+    const mergedOriginals = originalJobs
+      .map((job) => ({ ...job, ...(parsed[job.id] || {}) }))
+      .filter((job) => !job.deleted);
+    const customJobs = Object.entries(parsed)
+      .filter(([id, value]) => !originalIds.has(id) && value && typeof value === "object" && value.custom && !value.deleted)
+      .map(([id, value]) => ({
+        id,
+        group: value.group || "其他",
+        title: value.title || "未命名職務",
+        name: value.name || "",
+        locked: Boolean(value.locked && value.name),
+        unavailable: Boolean(value.unavailable),
+        custom: true,
+        deleted: false,
+        order: Number(value.order) || Date.now()
+      }));
+    return [...mergedOriginals, ...customJobs].sort((a, b) => (a.order || 0) - (b.order || 0));
   } catch {
     return structuredClone(originalJobs);
   }
 }
 
 function serializeJobs() {
-  return Object.fromEntries(jobs.map((job) => [job.id, { name: job.name, locked: job.locked }]));
+  const existing = (() => {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    } catch {
+      return {};
+    }
+  })();
+  const payload = Object.fromEntries(Object.entries(existing).filter(([, value]) => value?.deleted));
+  jobs.forEach((job) => {
+    payload[job.id] = {
+      group: job.group,
+      title: job.title,
+      name: job.name,
+      locked: Boolean(job.locked && job.name),
+      unavailable: Boolean(job.unavailable),
+      custom: Boolean(job.custom),
+      deleted: Boolean(job.deleted),
+      order: job.order || 0
+    };
+  });
+  return payload;
 }
 
 function saveJobs(options = { publish: true }) {
@@ -140,10 +181,10 @@ function initRemoteSync() {
     remoteSync.ref.on("value", (snapshot) => {
       const remotePayload = snapshot.val();
       if (!remotePayload) return;
-      jobs = originalJobs.map((job) => ({ ...job, ...(remotePayload[job.id] || {}) }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(remotePayload));
+      jobs = loadJobs();
       pending = null;
       selectedTeacher = "";
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(remotePayload));
       render();
     });
   } catch (error) {
@@ -191,25 +232,26 @@ function renderTeachers() {
 
 function renderBoard() {
   jobBoard.innerHTML = "";
-  groups.forEach((group) => {
+  [...new Set(jobs.map((job) => job.group))].forEach((groupTitle) => {
     const section = document.createElement("section");
     section.className = "job-group";
-    section.innerHTML = `<h2>${group.title}</h2>`;
+    section.innerHTML = `<h2>${groupTitle}</h2>`;
     const grid = document.createElement("div");
     grid.className = "job-grid";
 
-    jobs.filter((job) => job.group === group.title).forEach((job) => {
+    jobs.filter((job) => job.group === groupTitle).forEach((job) => {
       const cell = document.createElement("button");
       cell.type = "button";
       cell.className = "job";
       if (job.locked) cell.classList.add("locked");
+      if (job.unavailable) cell.classList.add("unavailable");
       if (job.name && !job.locked) cell.classList.add("chosen");
       if (pending?.jobId === job.id) cell.classList.add("pending");
-      cell.disabled = job.locked || Boolean(job.name);
+      cell.disabled = job.locked || job.unavailable || Boolean(job.name);
       cell.innerHTML = `
         <span class="job-title">${job.title}</span>
         <span class="job-name">${pending?.jobId === job.id ? formatName(pending.teacher) : (formatName(job.name) || "待選填")}</span>
-        <span class="job-note">${job.locked ? "已確認" : pending?.jobId === job.id ? "待確認" : job.name ? "已選填" : ""}</span>
+        <span class="job-note">${job.unavailable ? "暫停選填" : job.locked ? "已確認" : pending?.jobId === job.id ? "待確認" : job.name ? "已選填" : ""}</span>
       `;
       cell.addEventListener("click", () => chooseJob(job.id));
       grid.appendChild(cell);
@@ -224,7 +266,7 @@ function renderStatus() {
   const assignedNames = new Set(jobs.filter((job) => !job.locked && job.name).map((job) => job.name));
   document.querySelector("#availableCount").textContent = teachers.length - assignedNames.size;
   document.querySelector("#pickedCount").textContent = assignedNames.size;
-  document.querySelector("#openCount").textContent = jobs.filter((job) => !job.locked && !job.name).length - (pending ? 1 : 0);
+  document.querySelector("#openCount").textContent = jobs.filter((job) => !job.locked && !job.unavailable && !job.name).length - (pending ? 1 : 0);
   confirmButton.disabled = !pending;
   cancelButton.disabled = !pending;
 
@@ -242,6 +284,8 @@ function chooseJob(jobId) {
   if (!selectedTeacher) return;
   const alreadyAssigned = jobs.some((job) => !job.locked && job.name === selectedTeacher);
   if (alreadyAssigned) return;
+  const job = jobs.find((item) => item.id === jobId);
+  if (!job || job.locked || job.unavailable || job.name) return;
   pending = { teacher: selectedTeacher, jobId };
   render();
 }
@@ -279,10 +323,10 @@ resetButton.addEventListener("click", () => {
 
 exportButton.addEventListener("click", () => {
   const lines = ["臺北市文山區力行國小 115 學年度職務選填結果", ""];
-  groups.forEach((group) => {
-    lines.push(`【${group.title}】`);
-    jobs.filter((job) => job.group === group.title).forEach((job) => {
-      const status = job.locked ? "已確認" : job.name ? "本次選填" : "空白";
+  [...new Set(jobs.map((job) => job.group))].forEach((groupTitle) => {
+    lines.push(`【${groupTitle}】`);
+    jobs.filter((job) => job.group === groupTitle).forEach((job) => {
+      const status = job.unavailable ? "暫停選填" : job.locked ? "已確認" : job.name ? "本次選填" : "空白";
       lines.push(`${job.title}\t${formatName(job.name)}\t${status}`);
     });
     lines.push("");

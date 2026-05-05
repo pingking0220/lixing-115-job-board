@@ -247,8 +247,109 @@ button:disabled {
   background: #eef3f5;
 }
 
+.admin-body {
+  background: #f4f6f8;
+}
+
 .viewer-layout {
   padding: 18px;
+}
+
+.admin-layout {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.admin-toolbar,
+.admin-table-wrap {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.admin-toolbar {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.add-job-form,
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px;
+}
+
+.add-job-form label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.add-job-form input,
+.add-job-form select,
+.admin-table input {
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px 9px;
+  color: var(--ink);
+  background: #fff;
+}
+
+.check-label {
+  display: flex !important;
+  grid-template-columns: none;
+  align-items: center;
+  min-height: 40px;
+}
+
+.admin-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 920px;
+}
+
+.admin-table th,
+.admin-table td {
+  border-bottom: 1px solid var(--line);
+  padding: 9px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.admin-table th {
+  color: var(--muted);
+  font-size: 14px;
+  background: #f7fafb;
+}
+
+.admin-table input[type="text"] {
+  width: 100%;
+}
+
+.admin-table input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+}
+
+.compact-button {
+  min-height: 34px;
+  padding: 6px 10px;
+}
+
+.admin-status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
 }
 
 .viewer-strip {
@@ -316,6 +417,11 @@ button:disabled {
 
 .job.locked {
   background: var(--locked);
+}
+
+.job.unavailable {
+  border-color: #cbd5df;
+  background: #f1f4f7;
 }
 
 .job.chosen {

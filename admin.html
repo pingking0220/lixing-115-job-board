@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>力行國小 115 學年度職務選填後台管理板</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="admin-body">
+    <header class="topbar">
+      <div>
+        <p class="kicker">臺北市文山區力行國民小學</p>
+        <h1>職務選填後台管理板</h1>
+      </div>
+      <div class="actions">
+        <a class="ghost-link" href="./index.html">主控頁</a>
+        <a class="ghost-link" href="./viewer.html">觀看版</a>
+      </div>
+    </header>
+
+    <main class="admin-layout">
+      <section class="admin-toolbar">
+        <form id="addJobForm" class="add-job-form">
+          <label>
+            類別
+            <select id="newGroup"></select>
+          </label>
+          <label>
+            職務名稱
+            <input id="newTitle" type="text" placeholder="例如：自然科任 5" required />
+          </label>
+          <label>
+            姓名
+            <input id="newName" type="text" placeholder="可留空" list="teacherNames" />
+          </label>
+          <label class="check-label">
+            <input id="newSelectable" type="checkbox" checked />
+            開放選填
+          </label>
+          <button class="primary-button" type="submit">新增名額</button>
+        </form>
+        <div class="admin-actions">
+          <button id="saveAllButton" class="primary-button" type="button">儲存變更</button>
+          <button id="reloadButton" class="ghost-button" type="button">重新載入</button>
+          <button id="resetDefaultButton" class="danger-button" type="button">還原預設</button>
+        </div>
+      </section>
+
+      <section class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>類別</th>
+              <th>職務</th>
+              <th>姓名</th>
+              <th>已確認/保留</th>
+              <th>開放選填</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="adminRows"></tbody>
+        </table>
+      </section>
+      <p id="adminStatus" class="admin-status" aria-live="polite">尚未儲存變更</p>
+    </main>
+
+    <datalist id="teacherNames"></datalist>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+    <script src="./firebase-config.js"></script>
+    <script src="./admin.js"></script>
+  </body>
+</html>
