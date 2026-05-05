@@ -1,0 +1,386 @@
+:root {
+  color-scheme: light;
+  --ink: #1f2933;
+  --muted: #627282;
+  --line: #d8e0e6;
+  --paper: #f7f8fa;
+  --panel: #ffffff;
+  --brand: #0f766e;
+  --brand-dark: #115e59;
+  --accent: #b45309;
+  --danger: #b91c1c;
+  --locked: #eef2f6;
+  --shadow: 0 14px 36px rgba(31, 41, 51, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+button,
+textarea {
+  font: inherit;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 28px;
+  color: #fff;
+  background: #12343b;
+}
+
+.kicker {
+  margin: 0 0 4px;
+  color: #b8d8d4;
+  font-size: 15px;
+}
+
+h1,
+h2 {
+  margin: 0;
+  letter-spacing: 0;
+}
+
+h1 {
+  font-size: clamp(28px, 4vw, 44px);
+  line-height: 1.1;
+}
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.summary span {
+  min-width: 96px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.summary strong {
+  display: block;
+  font-size: 24px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) 1fr;
+  gap: 18px;
+  padding: 18px;
+}
+
+.teacher-panel,
+.action-strip,
+.job-group {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.teacher-panel {
+  position: sticky;
+  top: 18px;
+  align-self: start;
+  max-height: calc(100vh - 36px);
+  overflow: hidden;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.panel-head h2,
+.job-group h2 {
+  font-size: 20px;
+}
+
+.teacher-list {
+  display: grid;
+  gap: 8px;
+  max-height: calc(100vh - 108px);
+  padding: 12px;
+  overflow: auto;
+}
+
+.teacher {
+  display: grid;
+  grid-template-columns: 34px 1fr 44px;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: #fff;
+  cursor: pointer;
+}
+
+.teacher:hover:not(:disabled),
+.teacher.selected {
+  border-color: var(--brand);
+  background: #e7f5f2;
+}
+
+.teacher:disabled {
+  color: #84919f;
+  background: #f0f3f5;
+  cursor: not-allowed;
+}
+
+.order {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-left: 6px;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--brand);
+  font-weight: 700;
+}
+
+.teacher-name {
+  text-align: left;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.teacher-state {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.board-wrap {
+  display: grid;
+  gap: 14px;
+}
+
+.action-strip {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+}
+
+.current-action {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  color: var(--brand-dark);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.primary-button,
+.danger-button,
+.ghost-button,
+.icon-button {
+  min-height: 40px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.primary-button {
+  color: #fff;
+  background: var(--brand);
+}
+
+.danger-button {
+  color: #fff;
+  background: var(--danger);
+}
+
+.ghost-button,
+.icon-button {
+  color: var(--ink);
+  border-color: var(--line);
+  background: #fff;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.job-board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.job-group {
+  padding: 14px;
+}
+
+.job-group h2 {
+  margin-bottom: 12px;
+}
+
+.job-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.job {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 4px;
+  min-height: 94px;
+  padding: 10px;
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  text-align: left;
+  background: #fff;
+  cursor: pointer;
+}
+
+.job:hover:not(:disabled) {
+  border-color: var(--brand);
+  background: #f0faf8;
+}
+
+.job.locked {
+  background: var(--locked);
+}
+
+.job.chosen {
+  border-color: var(--brand);
+  background: #e9f7f4;
+}
+
+.job.pending {
+  border-color: var(--accent);
+  background: #fff6e8;
+}
+
+.job-title {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.job-name {
+  display: flex;
+  align-items: center;
+  min-height: 34px;
+  color: var(--ink);
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.job-note {
+  min-height: 18px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.export-dialog {
+  width: min(760px, calc(100vw - 28px));
+  border: 0;
+  border-radius: 8px;
+  padding: 0;
+  box-shadow: var(--shadow);
+}
+
+.export-dialog::backdrop {
+  background: rgba(18, 52, 59, 0.45);
+}
+
+.export-dialog form {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.dialog-head,
+.dialog-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.icon-button {
+  width: 40px;
+  padding: 0;
+  font-size: 26px;
+  line-height: 1;
+}
+
+textarea {
+  width: 100%;
+  min-height: 420px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  line-height: 1.6;
+}
+
+@media (max-width: 1100px) {
+  .job-board {
+    grid-template-columns: 1fr;
+  }
+
+  .teacher-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 760px) {
+  .topbar,
+  .action-strip {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+    padding: 10px;
+  }
+
+  .summary,
+  .actions {
+    justify-content: stretch;
+  }
+
+  .summary span,
+  .actions button {
+    flex: 1;
+  }
+}
