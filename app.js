@@ -38,6 +38,8 @@ const groups = [
 ];
 
 const STORAGE_KEY = "lixing-115-job-board";
+const CHANNEL_KEY = "lixing-115-job-board-updates";
+const updateChannel = "BroadcastChannel" in window ? new BroadcastChannel(CHANNEL_KEY) : null;
 const originalJobs = groups.flatMap((group, groupIndex) =>
   group.jobs.map(([title, name], jobIndex) => ({
     id: `${groupIndex}-${jobIndex}`,
@@ -78,6 +80,7 @@ function loadJobs() {
 function saveJobs() {
   const payload = Object.fromEntries(jobs.map((job) => [job.id, { name: job.name, locked: job.locked }]));
   localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  updateChannel?.postMessage({ type: "jobs-updated", savedAt: Date.now() });
 }
 
 function render() {

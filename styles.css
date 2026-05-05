@@ -207,11 +207,16 @@ h1 {
 .primary-button,
 .danger-button,
 .ghost-button,
+.ghost-link,
 .icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 40px;
   border: 1px solid transparent;
   border-radius: 8px;
   padding: 8px 14px;
+  text-decoration: none;
   cursor: pointer;
 }
 
@@ -226,6 +231,7 @@ h1 {
 }
 
 .ghost-button,
+.ghost-link,
 .icon-button {
   color: var(--ink);
   border-color: var(--line);
@@ -235,6 +241,39 @@ h1 {
 button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+.viewer-body {
+  background: #eef3f5;
+}
+
+.viewer-layout {
+  padding: 18px;
+}
+
+.viewer-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  color: var(--muted);
+  font-size: 18px;
+}
+
+.viewer-board .job {
+  cursor: default;
+  pointer-events: none;
+}
+
+.viewer-board .job.empty {
+  border-style: dashed;
+  background: #fbfcfd;
+}
+
+.viewer-board .job-name.empty-name {
+  color: #98a4af;
+  font-weight: 700;
 }
 
 .job-board {
