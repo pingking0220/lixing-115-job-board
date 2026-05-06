@@ -133,7 +133,7 @@ function saveJobs() {
     remoteRef.set(payload).catch((error) => console.warn("Firebase publish failed:", error));
   }
   const savedAt = new Date().toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-  statusMessage = `已儲存：${savedAt}`;
+  statusMessage = remoteReady ? `已儲存並同步資料庫：${savedAt}` : `已儲存於本機，尚未連線資料庫：${savedAt}`;
   adminStatus.textContent = statusMessage;
   saveAllButton.textContent = "已儲存";
   saveAllButton.classList.add("saved-button");
