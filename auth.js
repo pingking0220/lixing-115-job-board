@@ -40,6 +40,11 @@
     }
   };
 
+  document.addEventListener("click", (event) => {
+    if (event.target?.id !== "changePasswordButton") return;
+    changePassword();
+  });
+
   if (sessionStorage.getItem(SESSION_KEY) === "ok") return;
 
   const input = window.prompt("請輸入管理密碼");
