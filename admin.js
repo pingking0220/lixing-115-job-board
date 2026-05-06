@@ -67,6 +67,9 @@ const newName = document.querySelector("#newName");
 const newSelectable = document.querySelector("#newSelectable");
 const addJobForm = document.querySelector("#addJobForm");
 const saveAllButton = document.querySelector("#saveAllButton");
+const exportStateButton = document.querySelector("#exportStateButton");
+const importStateButton = document.querySelector("#importStateButton");
+const importStateInput = document.querySelector("#importStateInput");
 const reloadButton = document.querySelector("#reloadButton");
 const resetDefaultButton = document.querySelector("#resetDefaultButton");
 const teacherNames = document.querySelector("#teacherNames");
@@ -141,6 +144,69 @@ function saveJobs() {
     saveAllButton.textContent = "儲存變更";
     saveAllButton.classList.remove("saved-button");
   }, 1400);
+}
+
+function getBackupFileName() {
+  const now = new Date();
+  const stamp = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0"),
+    String(now.getHours()).padStart(2, "0"),
+    String(now.getMinutes()).padStart(2, "0")
+  ].join("");
+  return `力行國小115職務選填狀態_${stamp}.json`;
+}
+
+function exportState() {
+  collectRows();
+  const backup = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    title: "力行國小115學年度職務選填狀態",
+    storageKey: STORAGE_KEY,
+    jobs: serializeJobs()
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = getBackupFileName();
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  statusMessage = "已匯出狀態備份檔";
+  adminStatus.textContent = statusMessage;
+}
+
+function normalizeImportedPayload(data) {
+  if (data?.jobs && typeof data.jobs === "object") return data.jobs;
+  if (data && typeof data === "object") return data;
+  throw new Error("Invalid backup format");
+}
+
+function importStateFile(file) {
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    try {
+      const imported = JSON.parse(reader.result);
+      const payload = normalizeImportedPayload(imported);
+      if (!confirm("確定匯入這份狀態備份？目前資料會被覆蓋並同步到資料庫。")) return;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      jobs = loadJobs();
+      saveJobs();
+      render();
+      statusMessage = "已匯入狀態並儲存";
+      adminStatus.textContent = statusMessage;
+    } catch (error) {
+      console.error(error);
+      alert("匯入失敗：檔案格式不正確。");
+    } finally {
+      importStateInput.value = "";
+    }
+  });
+  reader.readAsText(file, "utf-8");
 }
 
 function render() {
@@ -256,6 +322,18 @@ saveAllButton.addEventListener("click", () => {
   saveJobs();
   jobs = loadJobs();
   render();
+});
+
+exportStateButton.addEventListener("click", exportState);
+
+importStateButton.addEventListener("click", () => {
+  importStateInput.click();
+});
+
+importStateInput.addEventListener("change", () => {
+  const file = importStateInput.files?.[0];
+  if (!file) return;
+  importStateFile(file);
 });
 
 reloadButton.addEventListener("click", () => {
