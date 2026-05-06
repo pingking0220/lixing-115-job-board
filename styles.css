@@ -225,6 +225,10 @@ h1 {
   background: var(--brand);
 }
 
+.primary-button.saved-button {
+  background: #15803d;
+}
+
 .danger-button {
   color: #fff;
   background: var(--danger);

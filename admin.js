@@ -57,6 +57,7 @@ const originalJobs = groups.flatMap((group, groupIndex) =>
 let jobs = loadJobs();
 let remoteRef = null;
 let remoteReady = false;
+let statusMessage = "可編輯後按「儲存變更」";
 
 const adminRows = document.querySelector("#adminRows");
 const adminStatus = document.querySelector("#adminStatus");
@@ -131,7 +132,15 @@ function saveJobs() {
   if (remoteReady) {
     remoteRef.set(payload).catch((error) => console.warn("Firebase publish failed:", error));
   }
-  adminStatus.textContent = `已儲存：${new Date().toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`;
+  const savedAt = new Date().toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  statusMessage = `已儲存：${savedAt}`;
+  adminStatus.textContent = statusMessage;
+  saveAllButton.textContent = "已儲存";
+  saveAllButton.classList.add("saved-button");
+  setTimeout(() => {
+    saveAllButton.textContent = "儲存變更";
+    saveAllButton.classList.remove("saved-button");
+  }, 1400);
 }
 
 function render() {
@@ -150,7 +159,7 @@ function render() {
     `;
     adminRows.appendChild(row);
   });
-  adminStatus.textContent = "可編輯後按「儲存變更」";
+  adminStatus.textContent = statusMessage;
 }
 
 function collectRows() {
@@ -224,6 +233,11 @@ addJobForm.addEventListener("submit", (event) => {
   render();
 });
 
+adminRows.addEventListener("input", () => {
+  statusMessage = "有未儲存變更";
+  adminStatus.textContent = statusMessage;
+});
+
 adminRows.addEventListener("click", (event) => {
   if (!event.target.classList.contains("delete-job")) return;
   collectRows();
@@ -246,6 +260,7 @@ saveAllButton.addEventListener("click", () => {
 
 reloadButton.addEventListener("click", () => {
   jobs = loadJobs();
+  statusMessage = "已重新載入目前儲存資料";
   render();
 });
 
