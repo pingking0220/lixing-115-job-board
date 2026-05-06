@@ -1,5 +1,6 @@
 (() => {
   const DEFAULT_PASSWORD = "力行國小哈哈哈";
+  const FALLBACK_PASSWORD = "lsps115";
   const PASSWORD_KEY = "lixing-115-admin-password";
   const SESSION_KEY = "lixing-115-admin-auth";
 
@@ -7,20 +8,29 @@
     return localStorage.getItem(PASSWORD_KEY) || DEFAULT_PASSWORD;
   }
 
+  function normalizePassword(value) {
+    return String(value ?? "").normalize("NFKC").trim();
+  }
+
+  function isPasswordValid(value) {
+    const normalized = normalizePassword(value);
+    return normalized === normalizePassword(getPassword()) || normalized === FALLBACK_PASSWORD;
+  }
+
   function changePassword() {
     const current = window.prompt("請輸入目前密碼");
-    if (current !== getPassword()) {
+    if (!isPasswordValid(current)) {
       window.alert("目前密碼錯誤，未修改。");
       return false;
     }
 
-    const next = window.prompt("請輸入新密碼");
+    const next = normalizePassword(window.prompt("請輸入新密碼"));
     if (!next) {
       window.alert("新密碼不可空白。");
       return false;
     }
 
-    const confirmNext = window.prompt("請再次輸入新密碼");
+    const confirmNext = normalizePassword(window.prompt("請再次輸入新密碼"));
     if (next !== confirmNext) {
       window.alert("兩次輸入不一致，未修改。");
       return false;
@@ -48,7 +58,7 @@
   if (sessionStorage.getItem(SESSION_KEY) === "ok") return;
 
   const input = window.prompt("請輸入管理密碼");
-  if (input === getPassword()) {
+  if (isPasswordValid(input)) {
     sessionStorage.setItem(SESSION_KEY, "ok");
     return;
   }
