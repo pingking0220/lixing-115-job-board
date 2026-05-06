@@ -107,6 +107,8 @@ const resetButton = document.querySelector("#resetButton");
 const exportDialog = document.querySelector("#exportDialog");
 const exportText = document.querySelector("#exportText");
 const copyButton = document.querySelector("#copyButton");
+const exportExcelButton = document.querySelector("#exportExcelButton");
+const exportPdfButton = document.querySelector("#exportPdfButton");
 
 function loadJobs() {
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -208,6 +210,28 @@ function render() {
 function formatName(name) {
   if (!name) return "";
   return Object.hasOwn(teacherPoints, name) ? `${name}（${teacherPoints[name]}）` : name;
+}
+
+function getExportRows() {
+  return jobs.map((job) => ({
+    類別: job.group,
+    職務: job.title,
+    姓名: job.name || "",
+    顯示姓名: formatName(job.name),
+    積分: Object.hasOwn(teacherPoints, job.name) ? teacherPoints[job.name] : "",
+    狀態: job.unavailable ? "暫停選填" : job.locked ? "已確認" : job.name ? "本次選填" : "空白",
+    開放選填: job.unavailable ? "否" : "是"
+  }));
+}
+
+function getExportFileName(extension) {
+  const today = new Date();
+  const dateText = [
+    today.getFullYear(),
+    String(today.getMonth() + 1).padStart(2, "0"),
+    String(today.getDate()).padStart(2, "0")
+  ].join("");
+  return `力行國小115學年度職務選填結果_${dateText}.${extension}`;
 }
 
 function renderTeachers() {
@@ -333,6 +357,62 @@ exportButton.addEventListener("click", () => {
   });
   exportText.value = lines.join("\n");
   exportDialog.showModal();
+});
+
+exportExcelButton.addEventListener("click", () => {
+  if (!window.XLSX) {
+    alert("Excel 匯出工具尚未載入，請重新整理後再試。");
+    return;
+  }
+
+  const worksheet = XLSX.utils.json_to_sheet(getExportRows());
+  worksheet["!cols"] = [
+    { wch: 18 },
+    { wch: 16 },
+    { wch: 12 },
+    { wch: 18 },
+    { wch: 8 },
+    { wch: 12 },
+    { wch: 10 }
+  ];
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "職務選填結果");
+  XLSX.writeFile(workbook, getExportFileName("xlsx"));
+});
+
+exportPdfButton.addEventListener("click", async () => {
+  if (!window.html2canvas || !window.jspdf?.jsPDF) {
+    alert("PDF 匯出工具尚未載入，請重新整理後再試。");
+    return;
+  }
+
+  exportPdfButton.disabled = true;
+  exportPdfButton.textContent = "產生中...";
+  exportDialog.close();
+
+  try {
+    const canvas = await html2canvas(jobBoard, {
+      backgroundColor: "#f7f8fa",
+      scale: 2,
+      useCORS: true
+    });
+    const imageData = canvas.toDataURL("image/png");
+    const orientation = canvas.width >= canvas.height ? "landscape" : "portrait";
+    const pdf = new jspdf.jsPDF({
+      orientation,
+      unit: "px",
+      format: [canvas.width, canvas.height],
+      compress: true
+    });
+    pdf.addImage(imageData, "PNG", 0, 0, canvas.width, canvas.height);
+    pdf.save(getExportFileName("pdf"));
+  } catch (error) {
+    console.error(error);
+    alert("PDF 匯出失敗，請再試一次。");
+  } finally {
+    exportPdfButton.disabled = false;
+    exportPdfButton.textContent = "匯出截圖 PDF 檔";
+  }
 });
 
 copyButton.addEventListener("click", async () => {

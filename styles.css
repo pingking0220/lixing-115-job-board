@@ -504,6 +504,12 @@ button:disabled {
   gap: 10px;
 }
 
+.export-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  gap: 10px;
+}
+
 .icon-button {
   width: 40px;
   padding: 0;
@@ -551,5 +557,9 @@ textarea {
   .summary span,
   .actions button {
     flex: 1;
+  }
+
+  .export-options {
+    grid-template-columns: 1fr;
   }
 }
