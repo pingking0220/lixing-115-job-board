@@ -352,6 +352,26 @@ button:disabled {
   font-size: 16px;
 }
 
+.access-denied {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 12px;
+  min-height: 100vh;
+  padding: 24px;
+  text-align: center;
+}
+
+.access-denied h1 {
+  color: var(--danger);
+}
+
+.access-denied p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 18px;
+}
+
 .viewer-strip {
   display: flex;
   align-items: center;
