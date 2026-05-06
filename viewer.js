@@ -158,31 +158,70 @@ function render() {
     const section = document.createElement("section");
     section.className = "job-group";
     section.innerHTML = `<h2>${groupTitle}</h2>`;
-    const grid = document.createElement("div");
-    grid.className = "job-grid";
-
-    jobs.filter((job) => job.group === groupTitle).forEach((job) => {
-      const cell = document.createElement("div");
-      cell.className = "job";
-      if (job.locked) cell.classList.add("locked");
-      if (job.unavailable) cell.classList.add("unavailable");
-      if (job.name && !job.locked) cell.classList.add("chosen");
-      if (!job.name) cell.classList.add("empty");
-      cell.innerHTML = `
-        <span class="job-title">${job.title}</span>
-        <span class="job-name ${job.name ? "" : "empty-name"}">${formatName(job.name) || "待選填"}</span>
-        <span class="job-note">${job.unavailable ? "暫停選填" : job.locked ? "已確認" : job.name ? "已選填" : ""}</span>
-      `;
-      grid.appendChild(cell);
-    });
-
-    section.appendChild(grid);
+    renderJobSubgroups(section, jobs.filter((job) => job.group === groupTitle), createJobCell);
     viewerBoard.appendChild(section);
   });
 
   pickedCount.textContent = jobs.filter((job) => !job.locked && job.name).length;
   openCount.textContent = jobs.filter((job) => !job.locked && !job.unavailable && !job.name).length;
   lastUpdated.textContent = `最後更新：${new Date().toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`;
+}
+
+function renderJobSubgroups(container, groupJobs, createCell) {
+  const buckets = new Map();
+  groupJobs.forEach((job) => {
+    const sectionTitle = getJobSection(job);
+    if (!buckets.has(sectionTitle)) buckets.set(sectionTitle, []);
+    buckets.get(sectionTitle).push(job);
+  });
+
+  buckets.forEach((sectionJobs, sectionTitle) => {
+    const subgroup = document.createElement("div");
+    subgroup.className = "job-subgroup";
+    subgroup.innerHTML = `<h3>${sectionTitle}</h3>`;
+    const grid = document.createElement("div");
+    grid.className = "job-grid";
+    sectionJobs.forEach((job) => grid.appendChild(createCell(job)));
+    subgroup.appendChild(grid);
+    container.appendChild(subgroup);
+  });
+}
+
+function getJobSection(job) {
+  const title = job.title;
+  if (["教務主任", "教學組長", "註冊組長", "設備組長", "資訊組長"].includes(title)) return "教務處";
+  if (["學務主任", "生教組長", "訓育組長", "體育組長", "衛生組長"].includes(title)) return "學務處";
+  if (title === "總務主任") return "總務處";
+  if (["輔導主任", "輔導組長", "特教組長", "資料組長"].includes(title)) return "輔導室";
+  if (/^1\d導師$/.test(title)) return "一年級";
+  if (/^2\d導師$/.test(title)) return "二年級";
+  if (/^3\d導師$/.test(title)) return "三年級";
+  if (/^4\d導師$/.test(title)) return "四年級";
+  if (/^5\d導師$/.test(title)) return "五年級";
+  if (/^6\d導師$/.test(title)) return "六年級";
+  if (title.startsWith("自然科任")) return "自然科任";
+  if (title.startsWith("英語科任")) return "英語科任";
+  if (title.startsWith("音樂科任")) return "音樂科任";
+  if (title.startsWith("體育科任")) return "體育科任";
+  if (title.startsWith("資源班")) return "資源班";
+  if (title.startsWith("專輔教師")) return "專輔教師";
+  if (title.includes("科任")) return "其他科任";
+  return "其他";
+}
+
+function createJobCell(job) {
+  const cell = document.createElement("div");
+  cell.className = "job";
+  if (job.locked) cell.classList.add("locked");
+  if (job.unavailable) cell.classList.add("unavailable");
+  if (job.name && !job.locked) cell.classList.add("chosen");
+  if (!job.name) cell.classList.add("empty");
+  cell.innerHTML = `
+    <span class="job-title">${job.title}</span>
+    <span class="job-name ${job.name ? "" : "empty-name"}">${formatName(job.name) || "待選填"}</span>
+    <span class="job-note">${job.unavailable ? "暫停選填" : job.locked ? "已確認" : job.name ? "已選填" : ""}</span>
+  `;
+  return cell;
 }
 
 window.addEventListener("storage", (event) => {
