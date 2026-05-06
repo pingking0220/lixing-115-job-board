@@ -255,6 +255,14 @@ button:disabled {
   background: #f4f6f8;
 }
 
+.practice-body {
+  background: #f6f7f2;
+}
+
+.practice-topbar {
+  background: #254336;
+}
+
 .viewer-layout {
   padding: 18px;
 }

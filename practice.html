@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>力行國小 115 學年度職務選填練習版</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="practice-body">
+    <header class="topbar practice-topbar">
+      <div>
+        <p class="kicker">臺北市文山區力行國民小學</p>
+        <h1>115 學年度職務選填練習版</h1>
+      </div>
+      <div class="summary" aria-live="polite">
+        <span><strong id="availableCount">0</strong> 位待選</span>
+        <span><strong id="pickedCount">0</strong> 位已練習</span>
+        <span><strong id="openCount">0</strong> 個空缺</span>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="teacher-panel">
+        <div class="panel-head">
+          <h2>練習順序</h2>
+          <button id="clearSelection" class="ghost-button" type="button">取消選取</button>
+        </div>
+        <div id="teacherList" class="teacher-list" aria-label="練習選填教師名單"></div>
+      </aside>
+
+      <section class="board-wrap">
+        <div class="action-strip">
+          <div id="currentAction" class="current-action">請先點選教師姓名</div>
+          <div class="actions">
+            <button id="confirmButton" class="primary-button" type="button" disabled>確認</button>
+            <button id="cancelButton" class="danger-button" type="button" disabled>取消</button>
+            <button id="resetButton" class="ghost-button" type="button">重設練習</button>
+          </div>
+        </div>
+
+        <div id="jobBoard" class="job-board" aria-label="職務選填練習表"></div>
+      </section>
+    </main>
+
+    <script src="./practice.js?v=20260506-1"></script>
+  </body>
+</html>
