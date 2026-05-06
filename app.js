@@ -104,6 +104,7 @@ const cancelButton = document.querySelector("#cancelButton");
 const clearSelection = document.querySelector("#clearSelection");
 const exportButton = document.querySelector("#exportButton");
 const resetButton = document.querySelector("#resetButton");
+const changePasswordButton = document.querySelector("#changePasswordButton");
 const exportDialog = document.querySelector("#exportDialog");
 const exportText = document.querySelector("#exportText");
 const copyButton = document.querySelector("#copyButton");
@@ -319,6 +320,10 @@ resetButton.addEventListener("click", () => {
   pending = null;
   saveJobs();
   render();
+});
+
+changePasswordButton.addEventListener("click", () => {
+  window.LIXING_AUTH?.changePassword();
 });
 
 exportButton.addEventListener("click", () => {
