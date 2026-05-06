@@ -234,6 +234,38 @@ function getExportFileName(extension) {
   return `力行國小115學年度職務選填結果_${dateText}.${extension}`;
 }
 
+function loadScriptOnce(src, globalName) {
+  if (globalName && window[globalName]) return Promise.resolve();
+  const existing = document.querySelector(`script[data-dynamic-src="${src}"]`);
+  if (existing) {
+    return new Promise((resolve, reject) => {
+      existing.addEventListener("load", resolve, { once: true });
+      existing.addEventListener("error", reject, { once: true });
+    });
+  }
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = src;
+    script.async = true;
+    script.dataset.dynamicSrc = src;
+    script.addEventListener("load", resolve, { once: true });
+    script.addEventListener("error", reject, { once: true });
+    document.head.appendChild(script);
+  });
+}
+
+async function ensureExcelTools() {
+  await loadScriptOnce("https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js", "XLSX");
+  if (!window.XLSX) throw new Error("XLSX not loaded");
+}
+
+async function ensurePdfTools() {
+  await loadScriptOnce("https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js", "html2canvas");
+  await loadScriptOnce("https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js", "jspdf");
+  if (!window.html2canvas || !window.jspdf?.jsPDF) throw new Error("PDF tools not loaded");
+}
+
 function renderTeachers() {
   const assignedNames = new Set(jobs.filter((job) => !job.locked && job.name).map((job) => job.name));
   teacherList.innerHTML = "";
@@ -359,38 +391,41 @@ exportButton.addEventListener("click", () => {
   exportDialog.showModal();
 });
 
-exportExcelButton.addEventListener("click", () => {
-  if (!window.XLSX) {
-    alert("Excel 匯出工具尚未載入，請重新整理後再試。");
-    return;
-  }
+exportExcelButton.addEventListener("click", async () => {
+  exportExcelButton.disabled = true;
+  exportExcelButton.textContent = "產生中...";
 
-  const worksheet = XLSX.utils.json_to_sheet(getExportRows());
-  worksheet["!cols"] = [
-    { wch: 18 },
-    { wch: 16 },
-    { wch: 12 },
-    { wch: 18 },
-    { wch: 8 },
-    { wch: 12 },
-    { wch: 10 }
-  ];
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "職務選填結果");
-  XLSX.writeFile(workbook, getExportFileName("xlsx"));
+  try {
+    await ensureExcelTools();
+    const worksheet = XLSX.utils.json_to_sheet(getExportRows());
+    worksheet["!cols"] = [
+      { wch: 18 },
+      { wch: 16 },
+      { wch: 12 },
+      { wch: 18 },
+      { wch: 8 },
+      { wch: 12 },
+      { wch: 10 }
+    ];
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "職務選填結果");
+    XLSX.writeFile(workbook, getExportFileName("xlsx"));
+  } catch (error) {
+    console.error(error);
+    alert("Excel 匯出工具載入失敗，請確認網路連線後再試。");
+  } finally {
+    exportExcelButton.disabled = false;
+    exportExcelButton.textContent = "匯出 Excel 檔";
+  }
 });
 
 exportPdfButton.addEventListener("click", async () => {
-  if (!window.html2canvas || !window.jspdf?.jsPDF) {
-    alert("PDF 匯出工具尚未載入，請重新整理後再試。");
-    return;
-  }
-
   exportPdfButton.disabled = true;
   exportPdfButton.textContent = "產生中...";
-  exportDialog.close();
 
   try {
+    await ensurePdfTools();
+    exportDialog.close();
     const canvas = await html2canvas(jobBoard, {
       backgroundColor: "#f7f8fa",
       scale: 2,
