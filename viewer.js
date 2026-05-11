@@ -154,17 +154,29 @@ function render() {
   const jobs = loadJobs();
 
   viewerBoard.innerHTML = "";
-  [...new Set(jobs.map((job) => job.group))].forEach((groupTitle) => {
+  [
+    ["行政", (job) => getViewerColumn(job) === "行政"],
+    ["一至六年級", (job) => getViewerColumn(job) === "年級"],
+    ["科任、專輔與資源班", (job) => getViewerColumn(job) === "科任"]
+  ].forEach(([groupTitle, filter]) => {
+    const columnJobs = jobs.filter(filter);
     const section = document.createElement("section");
     section.className = "job-group";
     section.innerHTML = `<h2>${groupTitle}</h2>`;
-    renderJobSubgroups(section, jobs.filter((job) => job.group === groupTitle), createJobCell);
+    renderJobSubgroups(section, columnJobs, createJobCell);
     viewerBoard.appendChild(section);
   });
 
   pickedCount.textContent = jobs.filter((job) => !job.locked && job.name).length;
   openCount.textContent = jobs.filter((job) => !job.locked && !job.unavailable && !job.name).length;
   lastUpdated.textContent = `最後更新：${new Date().toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`;
+}
+
+function getViewerColumn(job) {
+  const section = getJobSection(job);
+  if (["教務處", "學務處", "總務處", "輔導室"].includes(section)) return "行政";
+  if (["一年級", "二年級", "三年級", "四年級", "五年級", "六年級"].includes(section)) return "年級";
+  return "科任";
 }
 
 function renderJobSubgroups(container, groupJobs, createCell) {
