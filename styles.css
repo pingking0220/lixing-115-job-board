@@ -394,6 +394,121 @@ button:disabled {
   font-size: 18px;
 }
 
+.viewer-body .topbar {
+  padding: 10px 16px;
+}
+
+.viewer-body .kicker {
+  margin-bottom: 2px;
+  font-size: 13px;
+}
+
+.viewer-body h1 {
+  font-size: clamp(22px, 2.8vw, 34px);
+}
+
+.viewer-body .summary {
+  gap: 6px;
+}
+
+.viewer-body .summary span {
+  min-width: 76px;
+  padding: 6px 9px;
+  font-size: 13px;
+}
+
+.viewer-body .summary strong {
+  font-size: 20px;
+}
+
+.viewer-body .viewer-layout {
+  padding: 8px;
+}
+
+.viewer-body .viewer-strip {
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.viewer-body .viewer-strip .actions {
+  gap: 6px;
+}
+
+.viewer-body .viewer-strip .ghost-link {
+  min-height: 30px;
+  padding: 4px 9px;
+  font-size: 13px;
+}
+
+.viewer-body .job-board {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.viewer-body .job-group {
+  padding: 8px;
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.viewer-body .job-group h2 {
+  margin-bottom: 7px;
+  font-size: 17px;
+}
+
+.viewer-body .job-subgroup {
+  padding-top: 7px;
+}
+
+.viewer-body .job-subgroup + .job-subgroup {
+  margin-top: 8px;
+}
+
+.viewer-body .job-subgroup h3 {
+  display: inline-flex;
+  margin-bottom: 5px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--brand-dark);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.viewer-body .job-grid {
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  gap: 4px;
+}
+
+.viewer-body .job {
+  min-height: 48px;
+  gap: 1px;
+  padding: 4px 5px;
+  border-width: 1px;
+  border-radius: 6px;
+}
+
+.viewer-body .job-title {
+  overflow: hidden;
+  color: #536171;
+  font-size: 11px;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.viewer-body .job-name {
+  min-height: 20px;
+  font-size: clamp(14px, 1.35vw, 18px);
+  line-height: 1.15;
+}
+
+.viewer-body .job-note {
+  min-height: 13px;
+  font-size: 10px;
+  line-height: 1.1;
+}
+
 .viewer-board .job {
   cursor: default;
   pointer-events: none;
@@ -561,6 +676,10 @@ textarea {
     grid-template-columns: 1fr;
   }
 
+  .viewer-body .job-board {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .teacher-panel {
     position: static;
   }
@@ -576,6 +695,10 @@ textarea {
   .layout {
     grid-template-columns: 1fr;
     padding: 10px;
+  }
+
+  .viewer-body .job-board {
+    grid-template-columns: 1fr;
   }
 
   .summary,
